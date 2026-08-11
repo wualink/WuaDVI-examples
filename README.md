@@ -24,13 +24,48 @@ layout would prove nothing; these exercise the library from different angles.
 | `03-big-readout` | A single enormous number filling the screen — a production counter or machine-status sign. | 800×600 mono |
 | `04-console` | A scrolling text log; whatever you type in the serial monitor appears on screen. | 1280×720 mono |
 
-Every demo runs at **every** resolution. The mode is a runtime choice in the
-library, so each one simply starts in the mode that suits it and remembers
-whatever you switch it to afterwards:
+---
+
+## Changing the resolution
+
+Every demo runs at **every** resolution, and switching does not need a rebuild.
+Open the serial monitor and press a number:
+
+```
+ 1  320x240 RGB565      4  800x600 mono
+ 2  400x240 RGB565      5  1280x720 mono (30 Hz)
+ 3  640x480 mono
+ c  forget the stored mode   i  status   ?  this list
+```
+
+The board stores the choice and restarts into it, which is also how the display
+engine changes mode. Every demo prints this list at startup and forwards keys to
+the library in one line:
 
 ```cpp
-dvi.begin(WUA_RES_800x600x1);            // start here
+void loop() {
+    dvi.loop();
+    while (Serial.available() > 0)
+        dvi.consoleKey((char)Serial.read());
+}
+```
+
+### Why every demo looked the same
+
+**A stored mode wins over the `begin()` argument.** That is what makes a switch
+survive the restart it performs — but it also means that once anything has
+stored a mode, every sketch you flash afterwards comes up in *that* mode and
+ignores the one it asked for. Four demos that each request a different
+resolution will all look identical.
+
+Press **`c`** to forget the stored mode and restart; the sketch's own choice
+applies again. Since library commit `f6ec426`, `begin()` also prints a line when
+it overrides you, rather than doing it silently.
+
+```cpp
+dvi.begin(WUA_RES_800x600x1);            // start here, unless a mode is stored
 dvi.setResolution(WUA_RES_320x240);      // change — stores and restarts
+WuaDVI::clearStoredResolution();         // forget it, so begin() decides again
 ```
 
 ### Why these four

@@ -32,8 +32,15 @@ void setup() {
     wua_label(tile, dvi.resolutionName(), 6, wua_theme()->dim);
 
     Serial.printf("[OK] %s running\n", dvi.resolutionName());
+    WuaDVI::printConsoleHelp();
 }
 
 void loop() {
     dvi.loop();
+
+    /* Change resolution without rebuilding: 1..5 pick a mode, 'c' forgets the
+     * stored one, '?' lists the keys.  Switching stores the choice and restarts
+     * the board into it. */
+    while (Serial.available() > 0)
+        dvi.consoleKey((char)Serial.read());
 }
