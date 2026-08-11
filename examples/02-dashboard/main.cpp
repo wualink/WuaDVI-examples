@@ -146,15 +146,8 @@ void setup() {
     start_sweep(meter_cb, 2200);
 
     Serial.printf("[OK] %s running\n", dvi.resolutionName());
-    WuaDVI::printConsoleHelp();
 }
 
 void loop() {
     dvi.loop();
-
-    /* Change resolution without rebuilding: 1..5 pick a mode, 'c' forgets the
-     * stored one, '?' lists the keys.  Switching stores the choice and restarts
-     * the board into it. */
-    while (Serial.available() > 0)
-        dvi.consoleKey((char)Serial.read());
 }

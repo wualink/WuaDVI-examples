@@ -26,47 +26,36 @@ layout would prove nothing; these exercise the library from different angles.
 
 ---
 
-## Changing the resolution
+## Choosing the resolution
 
-Every demo runs at **every** resolution, and switching does not need a rebuild.
-Open the serial monitor and press a number:
-
-```
- 1  320x240 RGB565      4  800x600 mono
- 2  400x240 RGB565      5  1280x720 mono (30 Hz)
- 3  640x480 mono
- c  forget the stored mode   i  status   ?  this list
-```
-
-The board stores the choice and restarts into it, which is also how the display
-engine changes mode. Every demo prints this list at startup and forwards keys to
-the library in one line:
+Every demo runs at **every** resolution. It is a runtime value, set by two
+function calls and nothing else:
 
 ```cpp
-void loop() {
-    dvi.loop();
-    while (Serial.available() > 0)
-        dvi.consoleKey((char)Serial.read());
-}
+dvi.begin(WUA_RES_800x600x1);          // start here
+dvi.setResolution(WUA_RES_320x240);    // change — restarts into the new mode
 ```
 
-### Why every demo looked the same
+Each demo passes the mode that suits it to `begin()`, which is the one line to
+edit to see a demo at another resolution:
 
-**A stored mode wins over the `begin()` argument.** That is what makes a switch
-survive the restart it performs — but it also means that once anything has
-stored a mode, every sketch you flash afterwards comes up in *that* mode and
-ignores the one it asked for. Four demos that each request a different
-resolution will all look identical.
+| Env | `begin()` |
+|---|---|
+| `01-hello`, `02-dashboard` | `WUA_RES_640x480x1` |
+| `03-big-readout` | `WUA_RES_800x600x1` |
+| `04-console` | `WUA_RES_1280x720x1` |
 
-Press **`c`** to forget the stored mode and restart; the sketch's own choice
-applies again. Since library commit `f6ec426`, `begin()` also prints a line when
-it overrides you, rather than doing it silently.
+`setResolution()` **does not return** — it restarts the board into the new mode,
+because the display engine reboots to change mode and the widget primitives
+resolve their pixel sizes when they are created, so the interface has to be
+rebuilt at the new size anyway. `setup()` runs again and does exactly that.
 
-```cpp
-dvi.begin(WUA_RES_800x600x1);            // start here, unless a mode is stored
-dvi.setResolution(WUA_RES_320x240);      // change — stores and restarts
-WuaDVI::clearStoredResolution();         // forget it, so begin() decides again
-```
+The mode it requests is a **one-shot**, consumed by that restart. A power cycle
+brings the board back up in whatever the demo's `begin()` asks for, so a demo
+always looks the way it was written to look. To remember a choice instead, store
+it in your sketch and pass it to `begin()` — the
+[library README](https://github.com/wualink/WuaDVI-lib#resolution) shows the
+pattern.
 
 ### Why these four
 

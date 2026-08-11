@@ -92,7 +92,6 @@ void setup() {
     lv_timer_create(tick_cb, 2000, nullptr);
     Serial.printf("[OK] %s running - type to echo on screen\n",
                   dvi.resolutionName());
-    WuaDVI::printConsoleHelp();
 }
 
 void loop() {
@@ -106,15 +105,9 @@ void loop() {
         if (c == '\n' || c == '\r' || len == sizeof(in) - 1) {
             if (len > 0) {
                 in[len] = '\0';
-                /* This demo owns the console, so the library only sees a line
-                 * one key long. consoleKey() returns false for anything it
-                 * does not recognise, which is what lets the two share the
-                 * same stream. */
-                if (len > 1 || !dvi.consoleKey(in[0])) {
-                    char line[48];
-                    snprintf(line, sizeof(line), "> %s", in);
-                    log_line(line);
-                }
+                char line[48];
+                snprintf(line, sizeof(line), "> %s", in);
+                log_line(line);
                 len = 0;
             }
         } else {
