@@ -28,34 +28,35 @@ layout would prove nothing; these exercise the library from different angles.
 
 ## Choosing the resolution
 
-Every demo runs at **every** resolution. It is a runtime value, set by two
-function calls and nothing else:
+Every demo runs at **every** resolution. It is a runtime value, and one function
+decides it — in `setup()`, before `begin()`:
 
 ```cpp
-dvi.begin(WUA_RES_800x600x1);          // start here
-dvi.setResolution(WUA_RES_320x240);    // change — restarts into the new mode
+void setup() {
+    dvi.setResolution(WUA_RES_800x600x1);
+    dvi.begin();
+}
 ```
 
-Each demo passes the mode that suits it to `begin()`, which is the one line to
-edit to see a demo at another resolution:
+That is the one line to edit to see a demo at another resolution:
 
-| Env | `begin()` |
+| Env | `setResolution()` |
 |---|---|
 | `01-hello`, `02-dashboard` | `WUA_RES_640x480x1` |
 | `03-big-readout` | `WUA_RES_800x600x1` |
 | `04-console` | `WUA_RES_1280x720x1` |
 
-`setResolution()` **does not return** — it restarts the board into the new mode,
-because the display engine reboots to change mode and the widget primitives
-resolve their pixel sizes when they are created, so the interface has to be
-rebuilt at the new size anyway. `setup()` runs again and does exactly that.
+Called **after** `begin()`, the same function is a change rather than a choice:
+it restarts the board into the new mode and does not return. `setup()` runs
+again and rebuilds the interface at the new size — which has to happen anyway,
+since the widget primitives resolve their pixel sizes when they are created.
 
-The mode it requests is a **one-shot**, consumed by that restart. A power cycle
-brings the board back up in whatever the demo's `begin()` asks for, so a demo
-always looks the way it was written to look. To remember a choice instead, store
-it in your sketch and pass it to `begin()` — the
-[library README](https://github.com/wualink/WuaDVI-lib#resolution) shows the
-pattern.
+That request is consumed by exactly that restart, so a power cycle brings the
+board back up in whatever the demo's `setup()` selects: a demo always looks the
+way it was written to look, no matter what was run on the board before it. To
+remember a choice instead, store it in your sketch — the
+[library README](https://github.com/wualink/WuaDVI-lib#choosing-the-display-mode)
+shows the pattern.
 
 ### Why these four
 
@@ -101,7 +102,8 @@ Start from `01-hello`. The shape is always the same:
 WuaDVI dvi;
 
 void setup() {
-    dvi.begin(WUA_RES_640x480x1);
+    dvi.setResolution(WUA_RES_640x480x1);
+    dvi.begin();
     wua_ui_init();
     // ... build a screen with the wua_* primitives ...
 }

@@ -29,7 +29,8 @@ void setup() {
     delay(1500);
 
     /* 800x600 suits a read-from-afar sign: native pixels, no doubling. */
-    if (!dvi.begin(WUA_RES_800x600x1)) {
+    dvi.setResolution(WUA_RES_800x600x1);
+    if (!dvi.begin()) {
         Serial.printf("[ERROR] %s\n", dvi.lastError());
         return;
     }

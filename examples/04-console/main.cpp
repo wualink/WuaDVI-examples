@@ -68,7 +68,8 @@ void setup() {
 
     /* 1280x720 gives the most text on screen; at 30 Hz, which a log does not
      * care about. */
-    if (!dvi.begin(WUA_RES_1280x720x1)) {
+    dvi.setResolution(WUA_RES_1280x720x1);
+    if (!dvi.begin()) {
         Serial.printf("[ERROR] %s\n", dvi.lastError());
         return;
     }

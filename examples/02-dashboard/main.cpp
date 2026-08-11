@@ -99,7 +99,8 @@ void setup() {
     Serial.setTxTimeoutMs(0);
     delay(1500);
 
-    if (!dvi.begin(WUA_RES_640x480x1)) {
+    dvi.setResolution(WUA_RES_640x480x1);
+    if (!dvi.begin()) {
         Serial.printf("[ERROR] %s\n", dvi.lastError());
         return; /* loop() keeps retrying */
     }
