@@ -14,7 +14,7 @@
 #include <WuaDVI.h>
 
 WuaDVI dvi;
-static lv_obj_t *s_log = nullptr;
+static wua_obj_t *s_log = nullptr;
 
 /** Longest history the screen can usefully hold. */
 #define LOG_LINES 14
@@ -42,11 +42,10 @@ static void log_line(const char *text) {
             strncat(buf, "\n", sizeof(buf) - strlen(buf) - 1);
     }
     if (s_log != nullptr)
-        lv_label_set_text(s_log, buf);
+        wua_label_set(s_log, buf);
 }
 
-static void tick_cb(lv_timer_t *t) {
-    LV_UNUSED(t);
+static void tick_cb(void) {
     static uint32_t n = 0;
     char line[48];
     int16_t temp;
@@ -63,7 +62,7 @@ static void tick_cb(lv_timer_t *t) {
 
 void setup() {
     Serial.begin(115200);
-    Serial.setTxTimeoutMs(0);
+    Serial.setTxTimeoutMs(10); /* never wait on an absent host; 0 would hang */
     delay(1500);
 
     /* 1280x720 gives the most text on screen; at 30 Hz, which a log does not
@@ -75,22 +74,17 @@ void setup() {
     }
     wua_ui_init();
 
-    lv_obj_t *scr = lv_screen_active();
-    lv_obj_set_style_bg_color(scr, wua_theme()->bg, 0);
-    lv_obj_set_style_pad_all(scr, wua_pad(), 0);
-    lv_obj_set_flex_flow(scr, LV_FLEX_FLOW_COLUMN);
+    wua_obj_t *scr = wua_screen();
 
-    lv_obj_t *head = wua_column(scr);
-    lv_obj_set_width(head, lv_pct(100));
+    wua_obj_t *head = wua_header(scr);
     wua_label(head, "System console", 7, wua_theme()->accent);
 
-    lv_obj_t *panel = wua_tile(scr, nullptr, 100, 88, wua_theme()->tile);
-    lv_obj_set_flex_align(panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START,
-                          LV_FLEX_ALIGN_START);
+    wua_obj_t *panel = wua_tile(scr, nullptr, 100, 88, wua_theme()->tile);
+    wua_align(panel, WUA_ALIGN_START);
     s_log = wua_label(panel, "", 4, wua_theme()->text);
 
     log_line("console ready - type in the serial monitor");
-    lv_timer_create(tick_cb, 2000, nullptr);
+    wua_timer(2000, tick_cb);
     Serial.printf("[OK] %s running - type to echo on screen\n",
                   dvi.resolutionName());
 }

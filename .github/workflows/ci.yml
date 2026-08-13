@@ -28,7 +28,7 @@ jobs:
       # Every demo is built. An example that stops compiling is a broken
       # promise in the library's documentation, not just a broken sketch.
       matrix:
-        example: [01-hello, 02-dashboard, 03-big-readout, 04-console]
+        example: [01-hello, 02-dashboard, 03-big-readout, 04-console, 05-widgets]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

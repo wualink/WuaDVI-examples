@@ -14,7 +14,7 @@ WuaDVI dvi;
 
 void setup() {
     Serial.begin(115200);
-    Serial.setTxTimeoutMs(0);
+    Serial.setTxTimeoutMs(10); /* never wait on an absent host; 0 would hang */
     delay(1500);
 
     dvi.setResolution(WUA_RES_640x480x1);
@@ -24,11 +24,9 @@ void setup() {
     }
     wua_ui_init();
 
-    lv_obj_t *scr = lv_screen_active();
-    lv_obj_set_style_bg_color(scr, wua_theme()->bg, 0);
-    lv_obj_set_style_pad_all(scr, wua_pad(), 0);
+    wua_obj_t *scr = wua_screen();
 
-    lv_obj_t *tile = wua_tile(scr, nullptr, 100, 100, wua_theme()->tile);
+    wua_obj_t *tile = wua_tile(scr, nullptr, 100, 100, wua_theme()->tile);
     wua_label(tile, "Hello, WuaDVI", 12, wua_theme()->accent);
     wua_label(tile, dvi.resolutionName(), 6, wua_theme()->dim);
 

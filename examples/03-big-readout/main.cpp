@@ -12,20 +12,19 @@
 #include <WuaDVI.h>
 
 WuaDVI dvi;
-static lv_obj_t *s_value = nullptr;
-static lv_obj_t *s_unit = nullptr;
+static wua_obj_t *s_value = nullptr;
+static wua_obj_t *s_unit = nullptr;
 
-static void tick_cb(lv_timer_t *t) {
-    LV_UNUSED(t);
+static void tick_cb(void) {
     static int32_t v = 0;
     v = (v + 7) % 1000;
     if (s_value != nullptr)
-        lv_label_set_text_fmt(s_value, "%ld", (long)v);
+        wua_label_setf(s_value, "%ld", (long)v);
 }
 
 void setup() {
     Serial.begin(115200);
-    Serial.setTxTimeoutMs(0);
+    Serial.setTxTimeoutMs(10); /* never wait on an absent host; 0 would hang */
     delay(1500);
 
     /* 800x600 suits a read-from-afar sign: native pixels, no doubling. */
@@ -36,12 +35,8 @@ void setup() {
     }
     wua_ui_init();
 
-    lv_obj_t *scr = lv_screen_active();
-    lv_obj_set_style_bg_color(scr, wua_theme()->bg, 0);
-    lv_obj_set_style_pad_all(scr, wua_pad(), 0);
-    lv_obj_set_flex_flow(scr, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(scr, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER,
-                          LV_FLEX_ALIGN_CENTER);
+    wua_obj_t *scr = wua_screen();
+    wua_align(scr, WUA_ALIGN_CENTER);
 
     wua_label(scr, "PRODUCED TODAY", 6, wua_theme()->dim);
 
@@ -51,7 +46,7 @@ void setup() {
 
     s_unit = wua_label(scr, "units", 7, wua_theme()->accent);
 
-    lv_timer_create(tick_cb, 500, nullptr);
+    wua_timer(500, tick_cb);
     Serial.printf("[OK] %s running\n", dvi.resolutionName());
 }
 
