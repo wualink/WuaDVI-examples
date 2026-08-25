@@ -47,4 +47,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
       - name: Build
+        # The library's build hook fetches the pinned display-engine
+        # release from GitHub. Anonymous requests are capped at 60 per
+        # hour per IP, and CI runners share IPs -- so a repin, which
+        # invalidates the cache for every job at once, sent them all to
+        # the API together and one came back 403. The token raises that
+        # ceiling and needs no permissions beyond the default.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pio run -e ${{ matrix.example }}
