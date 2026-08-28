@@ -11,9 +11,9 @@ the monochrome modes — is invisible to the compiler.
 
 | | Demo | State |
 |---|---|---|
-| 01 | hello | ⚠️ re-check needed (migrated to primitives) |
-| 02 | dashboard | ⚠️ re-check needed (migrated to primitives) |
-| 03 | big-readout | ⚠️ re-check needed (migrated to primitives) |
+| 01 | hello | ✅ verified after the primitive migration, serial closed |
+| 02 | dashboard | ✅ verified after the primitive migration, serial closed |
+| 03 | big-readout | ⚠️ re-check needed (defect found and fixed in the library) |
 | 04 | console | ⚠️ re-check needed (migrated to primitives) |
 | 05 | widgets | ✅ verified in all five modes; serial-timeout fix unverified |
 | 06 | chart | ⬜ |
@@ -189,11 +189,27 @@ where 800×600 — the mode with the least scanout margin — begins to break.
 
 ## Open
 
-- **Demos 01-04 need re-checking on hardware.** They were verified before being
-  migrated onto the primitives, and the migration routed them through
-  `wua_screen()`, `wua_align()` and the width-fitted `wua_tile()` caption — plus
-  the serial timeout fix. A tick that predates the change it should have
-  covered is worse than no tick at all, so they are back to pending.
+- **Demos 03 and 04 still need re-checking on hardware.** 01 and 02 have now
+  been re-run after the primitive migration and both pass, with the serial
+  monitor closed — which also covers the USB-CDC timeout fix for those two.
+
+  The re-check was worth doing: **03 failed.** Its counter runs 0-999, and at
+  440 and 940 the final `0` wrapped onto a second line and pushed the rest of
+  the screen down. The cause was in the library, not the demo — `wua_value_label`
+  froze its width at the literal sample `"999"`, which in proportional Montserrat
+  is narrower than `"440"`, and never set a long mode, so LVGL's default WRAP
+  reflowed the layout. Fixed in wualink/WuaDVI-lib#4: digits are reserved at the
+  widest digit's width, and the label clips instead of wrapping.
+
+  This is exactly why a tick that predates the change it should have covered is
+  worse than no tick at all. The defect was in code that had been marked
+  verified, and only re-running it on the board found it.
+
+  **After the repin, 01, 02 and 05 are worth a second glance too** — the fix
+  makes value labels reserve slightly more width wherever the sample held a
+  narrow digit, which touches the gauge readout, the clock and the temperature
+  readouts. Reserving more is the safe direction, but it can tighten a layout
+  that was already close.
 
 - **The USB-CDC timeout fix is unverified on all five**, 05 included: it landed
   after the last hardware run. What it should fix is the board sitting on the

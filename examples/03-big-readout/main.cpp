@@ -40,8 +40,11 @@ void setup() {
 
     wua_label(scr, "PRODUCED TODAY", 6, wua_theme()->dim);
 
-    /* 40 % of the screen height: wua_value_label steps the font down if the
-     * widest content would not fit the width, so "999" never clips. */
+    /* 40 % of the screen height.  The sample says "three digits", not those
+     * three glyphs: wua_value_label reserves each digit at the widest digit's
+     * width, because Montserrat is proportional and "440" is wider than "999".
+     * Taking the sample literally used to leave the final 0 of 440 and 940
+     * wrapping onto a second line. */
     s_value = wua_value_label(scr, "999", 40);
 
     s_unit = wua_label(scr, "units", 7, wua_theme()->accent);
