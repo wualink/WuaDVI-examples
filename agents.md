@@ -11,11 +11,11 @@ the monochrome modes — is invisible to the compiler.
 
 | | Demo | State |
 |---|---|---|
-| 01 | hello | ⚠️ re-check needed (migrated to primitives) |
-| 02 | dashboard | ⚠️ re-check needed (migrated to primitives) |
-| 03 | big-readout | ⚠️ re-check needed (migrated to primitives) |
-| 04 | console | ⚠️ re-check needed (migrated to primitives) |
-| 05 | widgets | ✅ verified in all five modes; serial-timeout fix unverified |
+| 01 | hello | ✅ verified, serial closed — against the **previous** pin |
+| 02 | dashboard | ✅ verified, serial closed — against the **previous** pin |
+| 03 | big-readout | ✅ verified against this pin, after the wrap fix |
+| 04 | console | ✅ verified against this pin |
+| 05 | widgets | ✅ verified in all five modes — against the **previous** pin |
 | 06 | chart | ⬜ |
 | 07 | table-list | ⬜ |
 | 08 | styles | ⬜ |
@@ -189,11 +189,32 @@ where 800×600 — the mode with the least scanout margin — begins to break.
 
 ## Open
 
-- **Demos 01-04 need re-checking on hardware.** They were verified before being
-  migrated onto the primitives, and the migration routed them through
-  `wua_screen()`, `wua_align()` and the width-fitted `wua_tile()` caption — plus
-  the serial timeout fix. A tick that predates the change it should have
-  covered is worse than no tick at all, so they are back to pending.
+- **01, 02 and 05 carry ticks from the previous library pin.** All five demos
+  pass on hardware, but 01, 02 and 05 were run before `8ce2575`, which widens
+  every value label whose sample contains a digit. That reaches the clock
+  (`00:00:00`), the temperature readouts (`-99.9 C`) and the gauge readout.
+
+  Reserving more width is the safe direction, so this is a smaller risk than
+  the migration was — but it is the same shape of risk, and **02-dashboard is
+  the one to re-run** because it holds a gauge, a clock and a temperature
+  readout in one layout. 01 and 05 are lower stakes.
+
+  Re-running them is three commands. Leaving the ticks unqualified would repeat
+  the mistake this section exists to record.
+
+- **The re-check of 01-04 was worth doing: 03 failed.** Its counter runs 0-999, and at
+  440 and 940 the final `0` wrapped onto a second line and pushed the rest of
+  the screen down. The cause was in the library, not the demo — `wua_value_label`
+  froze its width at the literal sample `"999"`, which in proportional Montserrat
+  is narrower than `"440"`, and never set a long mode, so LVGL's default WRAP
+  reflowed the layout. Fixed in wualink/WuaDVI-lib#4: digits are reserved at the
+  widest digit's width, and the label clips instead of wrapping.
+
+  This is exactly why a tick that predates the change it should have covered is
+  worse than no tick at all. The defect was in code that had been marked
+  verified, and only re-running it on the board found it.
+
+
 
 - **The USB-CDC timeout fix is unverified on all five**, 05 included: it landed
   after the last hardware run. What it should fix is the board sitting on the
